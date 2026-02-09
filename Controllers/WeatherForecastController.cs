@@ -1,3 +1,5 @@
+using aspnet_core_integration.Dtos.Common;
+using aspnet_core_integration.Dtos.Invoice;
 using Microsoft.AspNetCore.Mvc;
 
 namespace aspnet_core_integration.Controllers
@@ -21,6 +23,20 @@ namespace aspnet_core_integration.Controllers
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
         {
+            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            {
+                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+                TemperatureC = Random.Shared.Next(-20, 55),
+                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+            })
+            .ToArray();
+        }
+
+        [HttpPost]
+        [Route("invoice")]
+        public IEnumerable<WeatherForecast> TestValidation([FromBody] InvoicePayloadDto requestDto)
+        {
+            Console.WriteLine("Paso el validador");
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),

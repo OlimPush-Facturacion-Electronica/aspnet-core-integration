@@ -1,7 +1,6 @@
 ﻿namespace aspnet_core_integration.Dtos.Common
 {
     public record ApiRequestDto<T>
-     where T : PayloadBaseDto
     {
         public string Origin { get; init; } = default!;
         public string UsrRequest { get; init; } = default!;

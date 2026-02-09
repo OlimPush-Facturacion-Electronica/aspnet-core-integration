@@ -1,11 +1,35 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Mvc;
+using aspnet_core_integration.Filters;
+using aspnet_core_integration.Validators.Invoice;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services
+    .AddControllers(options =>
+     {
+            options.Filters.Add<ValidationEndpointFilter>();
+     })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.DefaultIgnoreCondition =
+            System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+    });
 
-builder.Services.AddControllers();
+
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+builder.Services.AddFluentValidationAutoValidation(options =>
+{
+    options.DisableDataAnnotationsValidation = true;
+});
+
+builder.Services.AddValidatorsFromAssemblyContaining<InvoicePayloadDtoValidator>();
 
 var app = builder.Build();
 
