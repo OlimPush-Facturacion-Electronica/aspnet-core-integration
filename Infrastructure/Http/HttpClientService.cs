@@ -1,36 +1,70 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text;
-using Microsoft.Extensions.Options;
+using aspnet_core_integration.Dtos.Common;
+using System.Net.Sockets;
+using System.Net;
 using aspnet_core_integration.Infrastructure.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace aspnet_core_integration.Infrastructure.Http
 {
-    public class HttpClientService: IHttpClientService
+    public class HttpClientService(ILogger<HttpClientService> logger,
+          HttpClient httpClient,
+          IOptions<OlimPushSettings> options) : IHttpClientService
     {
-        private readonly HttpClient _httpClient;
-        private readonly ILogger<HttpClientService> _logger;
+        private readonly HttpClient _httpClient = httpClient;
+        private readonly ILogger<HttpClientService> _logger = logger;
+        private readonly IOptions<OlimPushSettings> _options = options;
 
-        public HttpClientService(ILogger<HttpClientService> logger,
-              HttpClient httpClient) {
-
-            _logger = logger;
-            _httpClient = httpClient;
-
-        }
         public async Task<TResponse> PostAsync<TRequest, TResponse>(
-           string url,
-           TRequest body)
+         string url,
+         TRequest body
+            )
         {
-            _logger.LogInformation("POST request to {Url}", url);
 
-            var response = await _httpClient.PostAsJsonAsync(url, body);
+            var requestWrapper = new ApiRequestDto<TRequest>
+            {
+                Payload = body,
+                IpRequest = GetLocalIpAddress(),
+                UsrRequest = "miUsuarioOlimPushAdmin",
+                Origin = _options.Value.Origin, // nombre de tu aplicacion
+                TransactionIde = Guid.NewGuid().ToString()
+            };
 
-            response.EnsureSuccessStatusCode();
+            _logger.LogInformation(
+                "TransactionId: {TransactionId} - Sending request to {Url}",
+                requestWrapper.TransactionIde,
+                url);
 
-            return await response.Content.ReadFromJsonAsync<TResponse>();
+            var response = await _httpClient.PostAsJsonAsync(url, requestWrapper);
 
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation(
+                "Response from {Url}. StatusCode: {StatusCode}. Body: {ResponseBody}",
+                url,
+                (int)response.StatusCode,
+                responseContent);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError(
+                    "Error calling {Url}. StatusCode: {StatusCode}. Response: {ResponseBody}",
+                    url,
+                    (int)response.StatusCode,
+                    responseContent);
+
+                response.EnsureSuccessStatusCode();
+            }
+
+            return JsonSerializer.Deserialize<TResponse>(
+                responseContent,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                })!;
         }
+
 
         public async Task<TResponse> GetAsync<TResponse>(
             string url,
@@ -66,6 +100,17 @@ namespace aspnet_core_integration.Infrastructure.Http
                 content,
                 options)!;
         }
+
+        private static string GetLocalIpAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+
+            var ip = host.AddressList
+                .FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
+
+            return ip?.ToString() ?? "unknown";
+        }
+
 
     }
 }

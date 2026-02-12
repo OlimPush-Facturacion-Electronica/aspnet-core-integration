@@ -3,7 +3,7 @@ using aspnet_core_integration.Dtos.Details;
 
 namespace aspnet_core_integration.Dtos.Invoice
 {
-    public record InvoicePayloadDto : PayloadDocumentBaseDto
+    public class InvoicePayloadDto : PayloadDocumentBaseDto
     {
         public InvoiceInfoDto InvoiceInfo { get; init; } = default!;
         public List<InvoiceDetailDto> Details { get; init; } = [];

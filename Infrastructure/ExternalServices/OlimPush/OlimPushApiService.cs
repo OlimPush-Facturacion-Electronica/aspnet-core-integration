@@ -5,11 +5,9 @@ using aspnet_core_integration.Infrastructure.Http;
 namespace aspnet_core_integration.Infrastructure.ExternalServices.OlimPush
 {
     public class OlimPushApiService(IHttpClientService httpClient,
-        IConfiguration configuration,
         ILogger<OlimPushApiService> logger) : IOlimPushApiService
     {
         private readonly IHttpClientService _httpClient = httpClient;
-        private readonly IConfiguration _configuration = configuration;
         private readonly ILogger<OlimPushApiService> _logger = logger;
 
         public async Task<GenericResDto<CreateInvoiceResDto>> CreateInvoiceAsync(

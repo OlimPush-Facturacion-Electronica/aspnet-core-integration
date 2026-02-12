@@ -4,5 +4,7 @@
     {
         public string BaseUrl { get; set; } = default!;
         public string AccessToken { get; set; } = default!;
+
+        public string Origin { get; set; } = default!;
     }
 }

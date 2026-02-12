@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 namespace aspnet_core_integration.Filters
 {
-    public class ValidationEndpointFilter : IActionFilter
+    public class ValidationActionFilter : IActionFilter
     {
         public void OnActionExecuted(ActionExecutedContext context)
         {
